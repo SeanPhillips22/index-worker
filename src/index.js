@@ -1,60 +1,46 @@
-import { fetchBase } from './airtable'
+import { Router } from 'itty-router'
+import { fetchBase, updateBase } from './airtable'
+import { typeJSON } from './utils/responses'
 
-async function handler(request) {
+// Create a new router
+const router = Router()
 
-    // get the query params
-    const { searchParams } = new URL(request.url)
-    const indexName = searchParams.get('list') // The type of index to fetch (ETFs)
-    const forceUpdate = searchParams.get('forceUpdate') // Force an update of the index
-    const key = searchParams.get('key') // The key to verify the request
+// Fetch an index
+router.get('/fetch/:index', async ({ params, query }) => {
+    if (query.key !== SA_CF_KEY) return new Response('Invalid key', { status: 401 });
 
-    // make sure all params are present and valid
-    if (!indexName || key !== SA_CF_KEY) return new Response('Problem', { status: 400 })
+    const data = await Index.get(params.index.toLowerCase())
+    if (data) return new Response(data, typeJSON)
+})
 
-    // if there is data and it's fresh, return it (else, fetch it again)
-    if (!forceUpdate) {
+// Force an index update
+router.get('/update/:index', async ({ params, query }) => {
+    if (query.key !== SA_CF_KEY) return new Response('Invalid key', { status: 401 });
 
-        // fetch the stored data and timestamp
-        const stored = await Index.get(indexName)
-        const updated = stored ? await Index.get(`${indexName}_lastUpdated`) : 0
+    const data = await fetchBase(params.index.toLowerCase())
+    if (data) return new Response(JSON.stringify(data), typeJSON)
+})
 
-        // get minutes elapsed since the last update
-        const minutes = (Date.now() - new Date(updated)) / 60000
+// Edit values in the index
+router.post('/edit', async request => {
+    if (request.query.key !== SA_CF_KEY) return new Response('Invalid key', { status: 401 });
 
-        if (stored && minutes < 60) {
-            return new Response(stored, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-        }
-    }
+    const data = await request.json()
+    const edit = await updateBase(data)
+    if (edit) return new Response(JSON.stringify(edit), typeJSON)
+})
 
-    let data = await fetchBase(indexName)
+// Return 404 if no route match
+router.all('*', () => new Response('404', { status: 404 }))
 
-    return new Response(JSON.stringify(data), {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-}
-
-
-
+// Update all the indexes
 async function updateAllIndexes() {
     await fetchBase('ETFs')
 }
 
 
-
-
-
-
-
-
-
-addEventListener('fetch', event => {
-    event.respondWith(handler(event.request))
+addEventListener('fetch', (e) => {
+    e.respondWith(router.handle(e.request))
 })
 
 addEventListener('scheduled', event => {
