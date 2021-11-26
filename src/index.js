@@ -38,15 +38,19 @@ router.all('*', () => new Response('404', { status: 404 }))
 
 // Update all the indexes
 async function updateAllIndexes() {
-	if (minutes(etfs) > 240) {
+	if ((await minutes('redirects')) > 360) {
+		await fetchBase('redirects')
+		return new Response('OK')
+	}
+	if ((await minutes('etfs')) > 240) {
 		await fetchBase('etfs')
 		return new Response('OK')
 	}
-	if (minutes(stocks) > 60) {
+	if ((await minutes('stocks')) > 60) {
 		await fetchStocks()
 		return new Response('OK')
 	}
-	if (minutes(ipos) > 30) {
+	if ((await minutes('ipos')) > 30) {
 		await fetchBase('ipos')
 		return new Response('OK')
 	}
@@ -62,9 +66,9 @@ addEventListener('scheduled', (event) => {
 	event.waitUntil(updateAllIndexes(event))
 })
 
-// router.get('/test/:symbol', async ({ params }) => {
-// 	const ind = await Index.get('stocks')
-// 	const jsn = JSON.parse(ind)
-// 	const fnd = jsn.find(i => i.symbol === params.symbol.toUpperCase())
-// 	return new Response(`Name is ${fnd.name}`)
+// router.get('/test', async () => {
+// 	console.log(await minutes('etfs'))
+// 	console.log(await minutes('stocks'))
+// 	console.log(await minutes('ipos'))
+// 	return new Response(`OK`)
 // })

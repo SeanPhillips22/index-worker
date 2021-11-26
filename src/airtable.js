@@ -19,6 +19,7 @@ function minifyAirtableData(data) {
 
 		if (field.Link) delete field.Link
 		if (field.SEC) delete field.SEC
+		if (field.TEST) delete field.TEST
 		if (field.Created) delete field.Created
 		if (field.executives) field.executives = JSON.parse(field.executives)
 
@@ -48,7 +49,9 @@ export async function fetchBase(baseName, view = null, saveAs = null) {
 		data = data.concat(json.records)
 
 		if (json.offset) {
-			url = view ? airtableUrl(name, `?offset=${json.offset}&view=${view}`) : airtableUrl(name, `?offset=${json.offset}`)
+			url = view
+				? airtableUrl(name, `?offset=${json.offset}&view=${view}`)
+				: airtableUrl(name, `?offset=${json.offset}`)
 		} else {
 			finished = true
 		}
@@ -72,8 +75,10 @@ export async function updateBase(data) {
 	if (!id) return null
 
 	// Set the payload to send to Airtable
+	delete data.base
+	delete data.symbol
 	let payload = {
-		fields: data.payload
+		fields: data
 	}
 
 	// Send the request
