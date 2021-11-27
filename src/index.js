@@ -1,5 +1,5 @@
 import { Router } from 'itty-router'
-import { fetchBase, updateBase, fetchStocks } from './airtable'
+import { fetchBase, updateBase, fetchSymbols } from './airtable'
 import { typeJSON } from './utils/responses'
 import { minutes } from './utils/minutes'
 
@@ -19,7 +19,7 @@ router.get('/update/:index', async ({ params, query }) => {
 	if (query.key !== SA_CF_KEY) return new Response('Invalid key', { status: 401 })
 
 	let base = params.index.toLowerCase()
-	const data = base === 'stocks' ? await fetchStocks() : await fetchBase(base)
+	const data = base === 'symbols' ? await fetchSymbols() : await fetchBase(base)
 
 	if (data) return new Response(JSON.stringify(data), typeJSON)
 })
@@ -32,6 +32,11 @@ router.post('/edit', async (request) => {
 	const edit = await updateBase(data)
 	if (edit) return new Response(JSON.stringify(edit), typeJSON)
 })
+
+// router.get('/test', async () => {
+// 	let data = await fetchSymbols()
+// 	if (data) return new Response(JSON.stringify(data), typeJSON)
+// })
 
 // Return 404 if no route match
 router.all('*', () => new Response('404', { status: 404 }))
@@ -47,7 +52,7 @@ async function updateAllIndexes() {
 		return new Response('OK')
 	}
 	if ((await minutes('stocks')) > 60) {
-		await fetchStocks()
+		await fetchSymbols()
 		return new Response('OK')
 	}
 	if ((await minutes('ipos')) > 30) {
@@ -65,10 +70,3 @@ addEventListener('fetch', (e) => {
 addEventListener('scheduled', (event) => {
 	event.waitUntil(updateAllIndexes(event))
 })
-
-// router.get('/test', async () => {
-// 	console.log(await minutes('etfs'))
-// 	console.log(await minutes('stocks'))
-// 	console.log(await minutes('ipos'))
-// 	return new Response(`OK`)
-// })

@@ -20,6 +20,8 @@ function minifyAirtableData(data) {
 		if (field.Link) delete field.Link
 		if (field.SEC) delete field.SEC
 		if (field.TEST) delete field.TEST
+		if (field.TEST_IEX_QUOTE) delete field.TEST_IEX_QUOTE
+		if (field.TEST_NEWS) delete field.TEST_NEWS
 		if (field.Created) delete field.Created
 		if (field.executives) field.executives = JSON.parse(field.executives)
 
@@ -118,4 +120,28 @@ export async function fetchStocks() {
 	await Index.put('stocks_lastUpdated', new Date().toISOString())
 
 	return stocks
+}
+
+export async function fetchSymbols() {
+	let last = await Index.get('symbols_lastFetched')
+
+	if (last === 'others') {
+		await fetchBase('symbols', 'nasdaq', 'symbols_nasdaq')
+		await Index.put('symbols_lastFetched', 'nasdaq')
+	} else {
+		await fetchBase('symbols', 'others', 'symbols_others')
+		await Index.put('symbols_lastFetched', 'others')
+	}
+
+	let symbols = []
+	let symbols1 = await Index.get('symbols_nasdaq')
+	let symbols2 = await Index.get('symbols_others')
+	if (symbols1 && symbols2) {
+		symbols = JSON.parse(symbols1).concat(JSON.parse(symbols2))
+	}
+
+	await Index.put('symbols', JSON.stringify(symbols))
+	await Index.put('symbols_lastUpdated', new Date().toISOString())
+
+	return symbols
 }
