@@ -39,7 +39,11 @@ router.get('/search/:param', async (input: Input) => {
     limit: 50,
   })
 
-  if (data) return new Response(JSON.stringify(result), typeJSON)
+  const response = result.map((result) => {
+    return { n: result.item.n, s: result.item.s, t: result.item.t }
+  })
+
+  if (data) return new Response(JSON.stringify(response), typeJSON)
 })
 
 /*
