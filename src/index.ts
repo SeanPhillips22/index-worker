@@ -26,7 +26,7 @@ type FuseResult<T> = Fuse.FuseResult<T>
 const router = Router()
 
 //Search trough the index with parameter as the search string
-router.get('/search/', async (input: Input) => {
+router.get('/search', async (input: Input) => {
   if (!input.query.q) {
     return new Response('404, not found!', { status: 404 })
   }
