@@ -4,7 +4,11 @@ import Fuse from 'fuse.js'
 
 interface Input {
   params: Param | undefined
-  query: string
+  query: Query
+}
+
+interface Query {
+  q: string
 }
 
 interface Param {
@@ -22,8 +26,8 @@ type FuseResult<T> = Fuse.FuseResult<T>
 const router = Router()
 
 //Search trough the index with parameter as the search string
-router.get('/search/:param', async (input: Input) => {
-  if (!input.params || !input.params.param) {
+router.get('/search/', async (input: Input) => {
+  if (!input.query.q) {
     return new Response('404, not found!', { status: 404 })
   }
 
@@ -35,15 +39,19 @@ router.get('/search/:param', async (input: Input) => {
   }
   const fuse = new Fuse(data, options)
 
-  const result: FuseResult<IndexType>[] = fuse.search(input.params.param, {
+  const result: FuseResult<IndexType>[] = fuse.search(input.query.q, {
     limit: 50,
   })
 
-  const response = result.map((result) => {
-    return { n: result.item.n, s: result.item.s, t: result.item.t }
-  })
-
-  if (data) return new Response(JSON.stringify(response), typeJSON)
+  if (data)
+    return new Response(
+      JSON.stringify(
+        result.map((result) => {
+          return { n: result.item.n, s: result.item.s, t: result.item.t }
+        }),
+      ),
+      typeJSON,
+    )
 })
 
 /*
