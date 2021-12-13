@@ -1,8 +1,6 @@
 import { Router } from 'itty-router'
-import { fetchBase, updateBase, fetchSymbols } from './airtable'
 import { typeJSON } from './utils/responses'
 import Fuse from 'fuse.js'
-import { minutes } from './utils/minutes'
 
 interface Input {
   params: Param | undefined
@@ -23,20 +21,6 @@ type FuseResult<T> = Fuse.FuseResult<T>
 // Create a new router
 const router = Router()
 
-//Fetch an index
-router.get('/fetch/:param', async (input: Input) => {
-  /*
-  if (query.key !== SA_CF_KEY)    return new Response('Invalid key', { status: 401 })
-  */
-  if (!input.params || !input.params.param) {
-    return new Response('404, not found!', { status: 404 })
-  }
-
-  const data = await Index.get(input.params.param.toLowerCase())
-
-  if (data) return new Response(data, typeJSON)
-})
-
 //Search trough the index with parameter as the search string
 router.get('/search/:param', async (input: Input) => {
   if (!input.params || !input.params.param) {
@@ -56,33 +40,6 @@ router.get('/search/:param', async (input: Input) => {
   })
 
   if (data) return new Response(JSON.stringify(result), typeJSON)
-})
-/*
-Force an index update
-*/
-router.get('/update/:param', async ({ params, query }) => {
-  // if (query.key !== SA_CF_KEY) return new Response('Invalid key', { status: 401 })
-
-  if (!params) {
-    return new Response('404, not found!', { status: 404 })
-  }
-
-  const base = params.param.toLowerCase()
-  const data = base === 'symbols' ? await fetchSymbols() : await fetchBase(base)
-
-  if (data) return new Response(JSON.stringify(data), typeJSON)
-})
-
-// Edit values in the index
-router.post('/edit', async (request: Request) => {
-  // 	if (request.query.key !== SA_CF_KEY) return new Response('Invalid key', { status: 401 })
-  if (!request) {
-    return new Response('404, not found!', { status: 404 })
-  }
-
-  const data = await request.json()
-  const edit = await updateBase(data)
-  if (edit) return new Response(JSON.stringify(edit), typeJSON)
 })
 
 /*
