@@ -36,7 +36,7 @@ router.get('/search/:param', async (input: Input) => {
   const fuse = new Fuse(data, options)
 
   const result: FuseResult<IndexType>[] = fuse.search(input.params.param, {
-    limit: 7,
+    limit: 50,
   })
 
   if (data) return new Response(JSON.stringify(result), typeJSON)
