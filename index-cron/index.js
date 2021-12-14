@@ -26,5 +26,5 @@ async function triggerEvent(scheduledTime) {
   }
   const response = await fetch(url, init)
   const results = await gatherResponse(response)
-  await Index.put(saveName, JSON.stringify(minified))
+  await Index.put('test', results)
 }
