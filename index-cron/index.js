@@ -1,4 +1,4 @@
-const url = 'https://api.stockanalysis.com/wp-json/sa/search?q=index'
+const url = 'https://api.stockanalysis.com/wp-json/sa/index?type=search'
 
 addEventListener('scheduled', (event) => {
   event.waitUntil(triggerEvent(event.scheduledTime))
