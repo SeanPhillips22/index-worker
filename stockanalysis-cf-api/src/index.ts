@@ -1,6 +1,5 @@
 import { Router } from 'itty-router'
 import { typeJSON } from './utils/responses'
-import Fuse from 'fuse.js'
 
 interface Input {
   params: Param | undefined
@@ -27,7 +26,6 @@ interface SearchItem {
   t: string
 }
 
-type FuseResult<T> = Fuse.FuseResult<T>
 // Create a new router
 const router = Router()
 
