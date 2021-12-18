@@ -21,6 +21,12 @@ interface IndexType {
   t: string
 }
 
+interface SearchItem {
+  s: string
+  n: string
+  t: string
+}
+
 type FuseResult<T> = Fuse.FuseResult<T>
 // Create a new router
 const router = Router()
@@ -31,27 +37,39 @@ router.get('/search', async (input: Input) => {
     return new Response('404, not found!', { status: 404 })
   }
 
-  const data = JSON.parse((await Index.get('index')) || '{}')
+  const index = JSON.parse((await Index.get('index')) || '{}')
 
-  const options: Fuse.IFuseOptions<IndexType> = {
-    includeScore: true,
-    keys: ['s', 'n'],
-  }
-  const fuse = new Fuse(data, options)
+  const keyword = input.query.q.toString().toUpperCase()
 
-  const result: FuseResult<IndexType>[] = fuse.search(input.query.q, {
-    limit: 50,
+  const exact = index.filter((item: SearchItem) => {
+    if (item.s && item.s === keyword) {
+      return item.s
+    }
+    if (item.n) {
+      const name = item.n.toUpperCase()
+      if (name === keyword) {
+        return name
+      }
+    }
   })
 
-  if (data)
-    return new Response(
-      JSON.stringify(
-        result.map((result) => {
-          return { n: result.item.n, s: result.item.s, t: result.item.t }
-        }),
-      ),
-      typeJSON,
-    )
+  const matches = index.filter((item: SearchItem) => {
+    if (item.s && item.s.startsWith(keyword)) {
+      if (item.s !== keyword) {
+        return item.s.startsWith(keyword)
+      }
+    }
+    if (item.n) {
+      const name = item.n.toUpperCase()
+      if (item.s !== keyword && name !== keyword) {
+        return name.startsWith(keyword)
+      }
+    }
+  })
+
+  const allResults = exact.concat(matches)
+  console.log(allResults)
+  if (index) return new Response(JSON.stringify(allResults), typeJSON)
 })
 
 /*
