@@ -68,7 +68,7 @@ router.get('/search', async (input: Input) => {
   })
 
   const allResults = exact.concat(matches)
-  console.log(allResults)
+
   if (index) return new Response(JSON.stringify(allResults), typeJSON)
 })
 
