@@ -35,7 +35,13 @@ router.get('/search', async (input: Input) => {
     return new Response('404, not found!', { status: 404 })
   }
 
-  const index = JSON.parse((await Index.get('index')) || '{}')
+  // Warm up the cache
+  if (input.query.q === 'getready') {
+    const index = JSON.parse((await Index.get('index', {cacheTtl: 600})) || '{}')
+    if (index) return new Response('ready')
+  }
+
+  const index = JSON.parse((await Index.get('index', {cacheTtl: 600})) || '{}')
 
   const keyword = input.query.q.toString().toUpperCase()
 
